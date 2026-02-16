@@ -1,9 +1,8 @@
-const Footer = () => {
+export default function Footer() {
   return (
-    <footer className="mt-16 text-center text-sm text-gray-500">
-      © 2026 Opportunity Miss Analyzer | Major/Minor Project
-    </footer>
+    <div className="mt-10 text-center text-sm text-slate-500 pb-8">
+      © {new Date().getFullYear()} Opportunity Miss Analyzer — Built with React +
+      Tailwind
+    </div>
   );
-};
-
-export default Footer;
+}

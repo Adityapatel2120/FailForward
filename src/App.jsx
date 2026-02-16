@@ -1,25 +1,31 @@
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Navbar from "./components/navbar";
-import Hero from "./components/hero";
-import Features from "./components/Features";
-import HowItWorks from "./components/HowItWorks";
-import Analytics from "./components/Analytics";
-import Suggestions from "./components/Suggestions";
-import CTA from "./components/CTA";
 import Footer from "./components/Footer";
 
-function App() {
+import Home from "./pages/Home";
+import FeaturesPage from "./pages/FeaturesPage";
+import DashboardPage from "./pages/DashboardPage";
+import Login from "./pages/Login";
+import Signup from "./pages/Signup";
+
+export default function App() {
   return (
-    <div className="max-w-350 mx-auto px-6 py-6 bg-linear-to-b from-blue-50 to-purple-50 min-h-screen">
-      <Navbar />
-      <Hero />
-      <Features />
-      <HowItWorks />
-      <Analytics />
-      <Suggestions />
-      <CTA />
-      <Footer />
-    </div>
+    <BrowserRouter>
+      <div className="min-h-screen bg-gradient-to-b from-[#eef2ff] via-[#f5f7ff] to-[#eef2ff]">
+        <div className="max-w-[1400px] mx-auto px-6 py-6">
+          <Navbar />
+
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/features" element={<FeaturesPage />} />
+            <Route path="/dashboard" element={<DashboardPage />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Signup />} />
+          </Routes>
+
+          <Footer />
+        </div>
+      </div>
+    </BrowserRouter>
   );
 }
-
-export default App;
