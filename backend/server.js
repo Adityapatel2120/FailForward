@@ -2,23 +2,19 @@ const express = require("express");
 const cors = require("cors");
 require("dotenv").config();
 
-const connectDB = require("./config/db"); // ← import db.js
+const connectDB = require("./config/db");
 const authRoutes = require("./routes/auth");
 const reminderRoutes = require("./routes/reminders");
 
 const app = express();
 
 // Connect to MongoDB
-connectDB(); // ← just this, nothing else
+connectDB();
 
 // CORS
 app.use(
   cors({
-<<<<<<< HEAD
-    origin: ["http://localhost:5173", "http://localhost:5174"],["https://failforward-frontend.onrender.com"],
-=======
-    origin: ["http://localhost:5173", "http://localhost:5174","https://failforward-frontend.onrender.com"],
->>>>>>> ddee437 (fix: correct CORS configuration for production)
+    origin: ["http://localhost:5173", "http://localhost:5174", "https://failforward-frontend.onrender.com"],
     methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: ["Content-Type"],
   })
