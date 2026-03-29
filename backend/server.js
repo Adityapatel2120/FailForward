@@ -14,7 +14,11 @@ connectDB(); // ← just this, nothing else
 // CORS
 app.use(
   cors({
+<<<<<<< HEAD
     origin: ["http://localhost:5173", "http://localhost:5174"],["https://failforward-frontend.onrender.com"],
+=======
+    origin: ["http://localhost:5173", "http://localhost:5174","https://failforward-frontend.onrender.com"],
+>>>>>>> ddee437 (fix: correct CORS configuration for production)
     methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: ["Content-Type"],
   })

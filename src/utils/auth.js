@@ -1,69 +1,50 @@
-const USERS_KEY = "oma_users";
-const CURRENT_USER_KEY = "oma_current_user";
+const BASE_URL = import.meta.env.VITE_API_URL
+  ? `${import.meta.env.VITE_API_URL}/api/auth`
+  : "http://localhost:5000/api/auth";
 
-export function getUsers() {
-  return JSON.parse(localStorage.getItem(USERS_KEY) || "[]");
+export async function signupUser({ name, email, password }) {
+  try {
+    const res = await fetch(`${BASE_URL}/signup`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, email, password }),
+    });
+    const data = await res.json();
+    if (!res.ok) return { ok: false, message: data.message };
+    localStorage.setItem("ff_token", data.token);
+    localStorage.setItem("ff_user", JSON.stringify(data.user));
+    return { ok: true, user: data.user };
+  } catch (err) {
+    return { ok: false, message: "Signup failed. Try again." };
+  }
 }
 
-export function saveUsers(users) {
-  localStorage.setItem(USERS_KEY, JSON.stringify(users));
-}
-
-export function signupUser({ name, email, password }) {
-  const users = getUsers();
-
-  const alreadyExists = users.find((u) => u.email === email);
-  if (alreadyExists) {
-    return { ok: false, message: "User already exists with this email." };
+export async function loginUser({ email, password }) {
+  try {
+    const res = await fetch(`${BASE_URL}/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    });
+    const data = await res.json();
+    if (!res.ok) return { ok: false, message: data.message };
+    localStorage.setItem("ff_token", data.token);
+    localStorage.setItem("ff_user", JSON.stringify(data.user));
+    return { ok: true, user: data.user };
+  } catch (err) {
+    return { ok: false, message: "Login failed. Try again." };
   }
-
-  const newUser = {
-    id: Date.now(),
-    name,
-    email,
-    password,
-  };
-
-  users.push(newUser);
-  saveUsers(users);
-
-  localStorage.setItem(
-    CURRENT_USER_KEY,
-    JSON.stringify({ id: newUser.id, name: newUser.name, email: newUser.email })
-  );
-
-  return { ok: true, user: newUser };
-}
-
-export function loginUser({ email, password }) {
-  const users = getUsers();
-
-  const found = users.find((u) => u.email === email);
-
-  if (!found) {
-    return { ok: false, message: "No account found with this email." };
-  }
-
-  if (found.password !== password) {
-    return { ok: false, message: "Incorrect password." };
-  }
-
-  localStorage.setItem(
-    CURRENT_USER_KEY,
-    JSON.stringify({ id: found.id, name: found.name, email: found.email })
-  );
-
-  return { ok: true, user: found };
 }
 
 export function logoutUser() {
-  localStorage.removeItem(CURRENT_USER_KEY);
+  localStorage.removeItem("ff_token");
+  localStorage.removeItem("ff_user");
 }
 
 export function getCurrentUser() {
-  return JSON.parse(localStorage.getItem(CURRENT_USER_KEY) || "null");
+  return JSON.parse(localStorage.getItem("ff_user") || "null");
 }
 
 export function isLoggedIn() {
-  return !!getCurrentUser();
+  return !!localStorage.getItem("ff_token");
 }

@@ -1,53 +1,52 @@
 const express = require("express");
 const router = express.Router();
-const fs = require("fs");
-const path = require("path");
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
+const mongoose = require("mongoose");
 
-const dbPath = path.join(__dirname, "../data/db.json");
+// User Schema
+const userSchema = new mongoose.Schema({
+  name: String,
+  email: { type: String, unique: true },
+  password: String,
+});
+const User = mongoose.model("User", userSchema);
+
+const JWT_SECRET = process.env.JWT_SECRET || "failforward_secret";
 
 // SIGNUP
-router.post("/signup", (req, res) => {
-
+router.post("/signup", async (req, res) => {
   const { name, email, password } = req.body;
+  try {
+    const existing = await User.findOne({ email });
+    if (existing) return res.status(400).json({ message: "User already exists" });
 
-  const db = JSON.parse(fs.readFileSync(dbPath));
+    const hashed = await bcrypt.hash(password, 10);
+    const user = await User.create({ name, email, password: hashed });
 
-  const existingUser = db.users.find(u => u.email === email);
-
-  if(existingUser){
-    return res.status(400).json({message:"User already exists"});
+    const token = jwt.sign({ id: user._id, name: user.name, email: user.email }, JWT_SECRET, { expiresIn: "7d" });
+    res.json({ token, user: { id: user._id, name: user.name, email: user.email } });
+  } catch (err) {
+    res.status(500).json({ message: "Signup failed" });
   }
-
-  const newUser = {
-    id: Date.now(),
-    name,
-    email,
-    password
-  };
-
-  db.users.push(newUser);
-
-  fs.writeFileSync(dbPath, JSON.stringify(db,null,2));
-
-  res.json(newUser);
 });
 
 // LOGIN
-router.post("/login",(req,res)=>{
+router.post("/login", async (req, res) => {
+  const { email, password } = req.body;
+  try {
+    const user = await User.findOne({ email });
+    if (!user) return res.status(401).json({ message: "No account found with this email" });
 
-  const {email,password} = req.body;
+    const match = await bcrypt.compare(password, user.password);
+    if (!match) return res.status(401).json({ message: "Incorrect password" });
 
-  const db = JSON.parse(fs.readFileSync(dbPath));
-
-  const user = db.users.find(
-    u => u.email === email && u.password === password
-  );
-
-  if(!user){
-    return res.status(401).json({message:"Invalid credentials"});
+    const token = jwt.sign({ id: user._id, name: user.name, email: user.email }, JWT_SECRET, { expiresIn: "7d" });
+    res.json({ token, user: { id: user._id, name: user.name, email: user.email } });
+  } catch (err) {
+    res.status(500).json({ message: "Login failed" });
   }
-
-  res.json(user);
 });
 
 module.exports = router;
+JWT_SECRET=failforward_super_secret_key
