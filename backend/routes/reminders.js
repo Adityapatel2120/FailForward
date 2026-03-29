@@ -1,9 +1,26 @@
 const express = require("express");
 const router = express.Router();
 const mongoose = require("mongoose");
+const jwt = require("jsonwebtoken");
+
+const JWT_SECRET = process.env.JWT_SECRET || "failforward_secret";
+
+// Auth middleware
+function authMiddleware(req, res, next) {
+  const token = req.headers.authorization?.split(" ")[1];
+  if (!token) return res.status(401).json({ message: "Unauthorized" });
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET);
+    req.userId = decoded.id;
+    next();
+  } catch {
+    res.status(401).json({ message: "Invalid token" });
+  }
+}
 
 // Reminder Schema
 const reminderSchema = new mongoose.Schema({
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
   title: String,
   date: String,
   tag: {
@@ -16,18 +33,15 @@ const reminderSchema = new mongoose.Schema({
     enum: ["pending", "completed", "missed"],
     default: "pending",
   },
-  reason: {
-    type: String,
-    default: ""
-  }
+  reason: { type: String, default: "" }
 });
 
 const Reminder = mongoose.model("Reminder", reminderSchema);
 
-// GET ALL REMINDERS
-router.get("/", async (req, res) => {
+// GET ALL REMINDERS (only for logged in user)
+router.get("/", authMiddleware, async (req, res) => {
   try {
-    const reminders = await Reminder.find();
+    const reminders = await Reminder.find({ userId: req.userId });
     res.json(reminders);
   } catch (error) {
     res.status(500).json({ message: "Failed to fetch reminders" });
@@ -35,10 +49,10 @@ router.get("/", async (req, res) => {
 });
 
 // ADD REMINDER
-router.post("/", async (req, res) => {
+router.post("/", authMiddleware, async (req, res) => {
   try {
     const { title, date, tag } = req.body;
-    const reminder = new Reminder({ title, date, tag: tag || "Other" });
+    const reminder = new Reminder({ userId: req.userId, title, date, tag: tag || "Other" });
     const saved = await reminder.save();
     res.json(saved);
   } catch (error) {
@@ -47,7 +61,7 @@ router.post("/", async (req, res) => {
 });
 
 // UPDATE STATUS + REASON + TAG
-router.put("/:id", async (req, res) => {
+router.put("/:id", authMiddleware, async (req, res) => {
   try {
     const { status, reason, tag } = req.body;
     const updated = await Reminder.findByIdAndUpdate(
@@ -62,7 +76,7 @@ router.put("/:id", async (req, res) => {
 });
 
 // DELETE REMINDER
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", authMiddleware, async (req, res) => {
   try {
     await Reminder.findByIdAndDelete(req.params.id);
     res.json({ message: "Reminder deleted" });
