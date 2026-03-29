@@ -8,28 +8,22 @@ export default function Signup() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  function handleSignup() {
+  async function handleSignup() {
     setError("");
-
     if (!name.trim() || !email.trim() || !password.trim()) {
       setError("All fields are required.");
       return;
     }
-
-    const res = signupUser({
-      name: name.trim(),
-      email: email.trim(),
-      password: password.trim(),
-    });
-
+    setLoading(true);
+    const res = await signupUser({ name: name.trim(), email: email.trim(), password: password.trim() });
+    setLoading(false);
     if (!res.ok) {
       setError(res.message);
       return;
     }
-
     navigate("/dashboard");
   }
 
@@ -55,7 +49,6 @@ export default function Signup() {
             onChange={(e) => setName(e.target.value)}
             className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
-
           <input
             type="email"
             placeholder="Email"
@@ -63,7 +56,6 @@ export default function Signup() {
             onChange={(e) => setEmail(e.target.value)}
             className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
-
           <input
             type="password"
             placeholder="Password"
@@ -71,12 +63,12 @@ export default function Signup() {
             onChange={(e) => setPassword(e.target.value)}
             className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
-
           <button
-            className="w-full px-4 py-3 rounded-xl bg-blue-600 text-white font-semibold shadow hover:bg-blue-700 transition"
+            className="w-full px-4 py-3 rounded-xl bg-blue-600 text-white font-semibold shadow hover:bg-blue-700 transition disabled:opacity-50"
             onClick={handleSignup}
+            disabled={loading}
           >
-            Create Account
+            {loading ? "Creating account..." : "Create Account"}
           </button>
 
           <p className="text-sm text-slate-600 text-center">
